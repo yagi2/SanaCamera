@@ -13,9 +13,12 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.support.annotation.RequiresApi
 import android.support.v7.app.AppCompatActivity
+import android.util.Size
 import android.view.Surface
 import android.view.TextureView
 import com.yagi2.sanacamera.databinding.ActivityMainBinding
+import kotlin.math.min
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -45,8 +48,24 @@ class MainActivity : AppCompatActivity() {
 
     private fun createCameraPreviewSession() {
         try {
+            val manager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            manager.cameraIdList.forEach {
+                val characteristics = manager.getCameraCharacteristics(it)
+                val cameraDirection = characteristics.get(CameraCharacteristics.LENS_FACING)
+
+                if (cameraDirection != null && cameraDirection == CameraCharacteristics.LENS_FACING_FRONT) {
+                    return@forEach
+                }
+
+                val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: return@forEach
+
+                val previewSize = map.getOutputSizes(SurfaceTexture::class.java).toList().chooseOptimalSize(Size(binding.root.width * 2, binding.root.height * 2))
+
+                binding.surface.ratio = previewSize
+            }
+
             val texture = binding.surface.surfaceTexture.apply {
-                setDefaultBufferSize(binding.surface.width * 2, binding.surface.height * 2)
+                setDefaultBufferSize(binding.surface.ratio.width, binding.surface.ratio.height)
             }
 
             val surface = Surface(texture)
@@ -67,6 +86,26 @@ class MainActivity : AppCompatActivity() {
 
     private fun startBackgroundThread() {
         backgroundThread = HandlerThread("CameraBackground").also { it.start() }
+    }
+
+    private fun List<Size>.chooseOptimalSize(preferredSize: Size): Size {
+        val shortSideLength = min(preferredSize.width, preferredSize.height)
+        val bigEnough = ArrayList<Size>()
+        val notBigEnough = ArrayList<Size>()
+
+        this.forEach {
+            if (it == preferredSize) return it
+
+            (if (it.width >= shortSideLength && it.height >= shortSideLength) bigEnough
+            else notBigEnough)
+                .add(it)
+        }
+
+        return when {
+            bigEnough.isNotEmpty() -> bigEnough.minBy { it.width * it.height } ?: this[0]
+            notBigEnough.isNotEmpty() -> notBigEnough.maxBy { it.width * it.height } ?: this[0]
+            else -> this[0]
+        }
     }
 
     private val cameraDeviceStateCallback = object : CameraDevice.StateCallback() {
