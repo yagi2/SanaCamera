@@ -19,7 +19,6 @@ import android.view.TextureView
 import com.yagi2.sanacamera.databinding.ActivityMainBinding
 import kotlin.math.min
 
-
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
@@ -59,7 +58,8 @@ class MainActivity : AppCompatActivity() {
 
                 val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: return@forEach
 
-                val previewSize = map.getOutputSizes(SurfaceTexture::class.java).toList().chooseOptimalSize(Size(binding.root.width * 2, binding.root.height * 2))
+                val previewSize = map.getOutputSizes(SurfaceTexture::class.java).toList()
+                    .chooseOptimalSize(Size(binding.root.width * 2, binding.root.height * 2))
 
                 binding.surface.ratio = previewSize
             }
@@ -121,7 +121,6 @@ class MainActivity : AppCompatActivity() {
 
         override fun onError(cameraDevice: CameraDevice, error: Int) {
             onDisconnected(cameraDevice)
-            finish()
         }
     }
 

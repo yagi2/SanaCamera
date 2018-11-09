@@ -5,8 +5,7 @@ import android.view.MotionEvent
 
 class PinchGestureDetector(private val pinchGestureListener: PinchGestureListener) {
 
-    var scale = 1.0f
-        private set
+    private var scale = 1.0f
 
     var distance: Float = 0.toFloat()
         private set

@@ -90,7 +90,7 @@ class RotateGestureDetector(private val rotationGestureListener: RotateGestureLi
                 return SLOPE_0.toFloat()
             }
 
-            var secondLinearSlope: Float
+            val secondLinearSlope: Float
             if (xm2 - xi2 != 0f && ym2 - yi2 != 0f) {
                 secondLinearSlope = (xm2 - xi2) / (ym2 - yi2)
             } else {
