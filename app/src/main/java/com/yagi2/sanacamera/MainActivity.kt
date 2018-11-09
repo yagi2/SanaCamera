@@ -38,6 +38,11 @@ class MainActivity : AppCompatActivity() {
         startBackgroundThread()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        cameraDevice?.close()
+    }
+
     @SuppressLint("MissingPermission")
     private fun openCamera() {
         val manager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
